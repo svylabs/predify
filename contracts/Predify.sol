@@ -7,11 +7,11 @@ import "./IResolutionStrategy.sol";
  * Predify is a prediction market for DeFi. Users can create prediction markets for any DeFi protocol and bet on the outcome of prediction.
  *
  * Some example markets could be:
- * 1. Will a governance vote pass?
- * 2. Will a protocol reach a certain TVL in terms of ETH or token value?
- * 3. Will a protocol be exploited?
- * 4. Will the number of tokens staked in a protocol increase?
- * 5. Will the total number of tokens issued by the protocol increase to a certain value, etc.
+ * 1. Will a governance vote pass in a certain protocol?
+ * 2. Will a protocol reach a certain TVL in terms of number of ETH or number of tokens in 2 days?
+ * 3. Will a protocol be exploited in the next 7 days?
+ * 4. Will the number of tokens staked in a protocol increase by 5 million in the next 10 days?
+ * 5. Will the total number of tokens issued by the protocol increase to a certain value in the next 30 days?
  *
  * Some protocols use data that is directly on chain to determine the outcome of prediction, while others must use off-chain data sources.
  *
