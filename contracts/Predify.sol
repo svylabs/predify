@@ -36,6 +36,8 @@ contract Predify {
 
     mapping(uint256 => PredictionMarket) public markets;
 
+    uint256 public constant MAX_OUTCOME_RESOLUTION_TIME = 1 days;
+
     mapping(uint256 => mapping(address => mapping(IResolutionStrategy.Outcome => uint256)))
         public bets;
 
@@ -200,7 +202,9 @@ contract Predify {
     function withdrawBet(uint256 marketId) public {
         // Only if aborted or outcome not resolved in time
         require(
-            (block.timestamp > markets[marketId].votingEndTime + 1 days) || // 1 day grace period
+            (block.timestamp >
+                markets[marketId].votingEndTime +
+                    MAX_OUTCOME_RESOLUTION_TIME) || // 1 day grace period
                 markets[marketId].outcome == IResolutionStrategy.Outcome.Abort,
             "Market outcome not aborted"
         );
