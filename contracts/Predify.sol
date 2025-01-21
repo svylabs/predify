@@ -34,7 +34,7 @@ contract Predify {
         uint256 creatorFee;
     }
 
-    mapping(uint256 => PredictionMarket) public predictionMarkets;
+    mapping(uint256 => PredictionMarket) public markets;
 
     mapping(uint256 => mapping(address => mapping(IResolutionStrategy.Outcome => uint256)))
         public bets;
@@ -51,7 +51,7 @@ contract Predify {
         address betTokenAddress,
         uint256 creatorFee
     ) public {
-        predictionMarkets[marketId] = PredictionMarket({
+        markets[marketId] = PredictionMarket({
             creator: msg.sender,
             description: description,
             resolutionStrategy: resolutionStrategy,
@@ -73,11 +73,11 @@ contract Predify {
         IResolutionStrategy.Outcome predictedOutcome
     ) public payable {
         require(
-            block.timestamp >= predictionMarkets[marketId].votingStartTime,
+            block.timestamp >= markets[marketId].votingStartTime,
             "Voting has not started yet"
         );
         require(
-            block.timestamp <= predictionMarkets[marketId].votingEndTime,
+            block.timestamp <= markets[marketId].votingEndTime,
             "Voting has ended"
         );
         require(
@@ -88,17 +88,17 @@ contract Predify {
         require(betValue > 0, "Bet value must be greater than 0");
 
         _requireBetTokenTransfer(
-            predictionMarkets[marketId].betTokenAddress,
+            markets[marketId].betTokenAddress,
             msg.sender,
             betValue
         );
 
-        predictionMarkets[marketId].totalBetAmount += betValue;
+        markets[marketId].totalBetAmount += betValue;
 
         if (predictedOutcome == IResolutionStrategy.Outcome.Yes) {
-            predictionMarkets[marketId].totalYesBetAmount += betValue;
+            markets[marketId].totalYesBetAmount += betValue;
         } else {
-            predictionMarkets[marketId].totalNoBetAmount += betValue;
+            markets[marketId].totalNoBetAmount += betValue;
         }
 
         bets[marketId][msg.sender][predictedOutcome] += betValue;
@@ -106,60 +106,56 @@ contract Predify {
 
     function resolveMarket(uint256 marketId) public {
         require(
-            block.timestamp > predictionMarkets[marketId].votingEndTime,
+            block.timestamp > markets[marketId].votingEndTime,
             "Voting has not ended yet"
         );
 
-        predictionMarkets[marketId].outcome = IResolutionStrategy(
-            predictionMarkets[marketId].resolutionStrategy
-        ).getOutcome(marketId, predictionMarkets[marketId].resolutionData);
+        markets[marketId].outcome = IResolutionStrategy(
+            markets[marketId].resolutionStrategy
+        ).getOutcome(marketId, markets[marketId].resolutionData);
     }
 
     function claimWinningProceeds(uint256 marketId) public {
         require(
-            predictionMarkets[marketId].outcome !=
-                IResolutionStrategy.Outcome.None,
+            markets[marketId].outcome != IResolutionStrategy.Outcome.None,
             "Market outcome not resolved yet"
         );
         require(
-            block.timestamp > predictionMarkets[marketId].votingEndTime,
+            block.timestamp > markets[marketId].votingEndTime,
             "Voting has not ended yet"
         );
 
         uint256 totalWinnings = 0;
 
-        if (
-            predictionMarkets[marketId].outcome ==
-            IResolutionStrategy.Outcome.Yes
-        ) {
+        if (markets[marketId].outcome == IResolutionStrategy.Outcome.Yes) {
             totalWinnings =
-                (predictionMarkets[marketId].totalNoBetAmount *
+                (markets[marketId].totalNoBetAmount *
                     bets[marketId][msg.sender][
                         IResolutionStrategy.Outcome.Yes
                     ]) /
-                predictionMarkets[marketId].totalYesBetAmount;
+                markets[marketId].totalYesBetAmount;
             bets[marketId][msg.sender][IResolutionStrategy.Outcome.Yes] = 0;
         } else {
             totalWinnings =
-                (predictionMarkets[marketId].totalYesBetAmount *
+                (markets[marketId].totalYesBetAmount *
                     bets[marketId][msg.sender][
                         IResolutionStrategy.Outcome.No
                     ]) /
-                predictionMarkets[marketId].totalNoBetAmount;
+                markets[marketId].totalNoBetAmount;
             bets[marketId][msg.sender][IResolutionStrategy.Outcome.No] = 0;
         }
 
-        uint256 creatorFee = (totalWinnings *
-            predictionMarkets[marketId].creatorFee) / 10000;
+        uint256 creatorFee = (totalWinnings * markets[marketId].creatorFee) /
+            10000;
 
         _requireBetWinningTransfer(
-            predictionMarkets[marketId].betTokenAddress,
+            markets[marketId].betTokenAddress,
             msg.sender,
             totalWinnings - creatorFee
         );
         _requireBetWinningTransfer(
-            predictionMarkets[marketId].betTokenAddress,
-            predictionMarkets[marketId].creator,
+            markets[marketId].betTokenAddress,
+            markets[marketId].creator,
             creatorFee
         );
     }
