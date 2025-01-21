@@ -38,6 +38,8 @@ contract Predify {
 
     uint256 public constant MAX_OUTCOME_RESOLUTION_TIME = 1 days;
 
+    uint256 public constant MAX_PERCENTAGE = 10000;
+
     mapping(uint256 => mapping(address => mapping(IResolutionStrategy.Outcome => uint256)))
         public bets;
 
@@ -53,6 +55,7 @@ contract Predify {
         address betTokenAddress,
         uint256 creatorFee
     ) public {
+        require(creatorFee < MAX_PERCENTAGE, "Creator fee too high");
         markets[marketId] = PredictionMarket({
             creator: msg.sender,
             description: description,
@@ -118,7 +121,12 @@ contract Predify {
         ).getOutcome(marketId, markets[marketId].resolutionData);
     }
 
-    function claimWinningProceeds(uint256 marketId) public {
+    function claimWinningProceeds(
+        uint256 marketId,
+        address frontend,
+        uint256 frontendFee
+    ) public {
+        require(frontendFee < MAX_PERCENTAGE, "Frontend fee too high");
         IResolutionStrategy.Outcome outcome = markets[marketId].outcome;
         require(
             (outcome != IResolutionStrategy.Outcome.None &&
@@ -153,16 +161,28 @@ contract Predify {
         uint256 creatorFee = (totalWinnings * markets[marketId].creatorFee) /
             10000;
 
+        uint256 frontendFeeAmount = 0;
+        if (frontendFee > 0) {
+            frontendFeeAmount = (totalWinnings * frontendFee) / 10000;
+        }
+
         _requireTransfer(
             markets[marketId].betTokenAddress,
             msg.sender,
-            totalWinnings - creatorFee
+            totalWinnings - creatorFee - frontendFeeAmount
         );
         _requireTransfer(
             markets[marketId].betTokenAddress,
             markets[marketId].creator,
             creatorFee
         );
+        if (frontendFeeAmount > 0) {
+            _requireTransfer(
+                markets[marketId].betTokenAddress,
+                frontend,
+                frontendFeeAmount
+            );
+        }
     }
 
     function _requireBetTokenTransfer(
