@@ -4,7 +4,8 @@ interface IResolutionStrategy {
     enum Outcome {
         None,
         Yes,
-        No
+        No,
+        Abort
     }
 
     function registerMarket(uint256 marketId) external;
