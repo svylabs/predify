@@ -9,8 +9,8 @@ interface IPredify {
         uint256 totalBetAmount;
         uint256 totalYesBetAmount;
         uint256 totalNoBetAmount;
-        uint256 votingEndTime;
         uint256 votingStartTime;
+        uint256 votingEndTime;
         address betTokenAddress;
         Outcome outcome;
         uint256 creatorFee;

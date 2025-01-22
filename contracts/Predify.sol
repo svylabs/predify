@@ -36,8 +36,8 @@ contract Predify is IPredify {
         string memory description,
         address resolutionStrategy,
         bytes calldata resolutionData,
-        uint256 votingEndTime,
         uint256 votingStartTime,
+        uint256 votingEndTime,
         address betTokenAddress,
         uint256 creatorFee
     ) public {
