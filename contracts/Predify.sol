@@ -60,9 +60,18 @@ contract Predify is IPredify {
             IResolutionStrategy(resolutionStrategy).registerMarket(marketId),
             "Market registration failed"
         );
+        emit MarketCreated(
+            marketId,
+            msg.sender,
+            creatorFee,
+            betTokenAddress,
+            votingStartTime,
+            votingEndTime,
+            resolutionStrategy
+        );
     }
 
-    function vote(
+    function predict(
         uint256 marketId,
         uint256 betValue,
         Outcome predictedOutcome
@@ -91,13 +100,25 @@ contract Predify is IPredify {
 
         markets[marketId].totalBetAmount += betValue;
 
+        uint256 totalBets = 0;
+
         if (predictedOutcome == Outcome.Yes) {
             markets[marketId].totalYesBetAmount += betValue;
+            totalBets = markets[marketId].totalYesBetAmount;
         } else {
             markets[marketId].totalNoBetAmount += betValue;
+            totalBets = markets[marketId].totalNoBetAmount;
         }
 
         bets[marketId][msg.sender][predictedOutcome] += betValue;
+        emit Prediction(
+            marketId,
+            msg.sender,
+            predictedOutcome,
+            betValue,
+            bets[marketId][msg.sender][predictedOutcome],
+            totalBets
+        );
     }
 
     function resolveMarket(uint256 marketId) public {
@@ -106,9 +127,24 @@ contract Predify is IPredify {
             "Voting has not ended yet"
         );
 
-        markets[marketId].outcome = IResolutionStrategy(
+        require(
+            block.timestamp <
+                markets[marketId].votingEndTime + MAX_OUTCOME_RESOLUTION_TIME,
+            "Outcome resolution time has passed"
+        );
+
+        require(
+            markets[marketId].outcome == Outcome.None,
+            "Market outcome already resolved"
+        );
+
+        Outcome outcome = IResolutionStrategy(
             markets[marketId].resolutionStrategy
         ).getOutcome(marketId, markets[marketId].resolutionData);
+
+        markets[marketId].outcome = outcome;
+
+        emit MarketResolved(marketId, outcome);
     }
 
     function claim(
@@ -168,6 +204,13 @@ contract Predify is IPredify {
                 frontendFeeAmount
             );
         }
+        emit ClaimedProceeds(
+            marketId,
+            msg.sender,
+            totalWinnings,
+            creatorFee,
+            frontendFeeAmount
+        );
     }
 
     function _requireBetTokenTransfer(
@@ -216,6 +259,7 @@ contract Predify is IPredify {
 
         if (markets[marketId].outcome == Outcome.None) {
             markets[marketId].outcome = Outcome.Abort;
+            emit MarketResolved(marketId, Outcome.Abort);
         }
 
         uint256 yesBets = bets[marketId][msg.sender][Outcome.Yes];

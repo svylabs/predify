@@ -34,7 +34,7 @@ interface IPredify {
         uint256 creatorFee
     ) external;
 
-    function vote(
+    function predict(
         uint256 marketId,
         uint256 betValue,
         Outcome predictedOutcome
@@ -49,4 +49,36 @@ interface IPredify {
     ) external;
 
     function withdrawBet(uint256 marketId) external;
+
+    // events
+    event MarketCreated(
+        uint256 marketId,
+        address creator,
+        uint256 creatorFee,
+        address betTokenAddress,
+        uint256 votingStartTime,
+        uint256 votingEndTime,
+        address resolutionStrategy
+    );
+
+    event MarketResolved(uint256 marketId, Outcome outcome);
+
+    event Prediction(
+        uint256 marketId,
+        address voter,
+        Outcome predictedOutcome,
+        uint256 betValue,
+        uint256 totalUserBets,
+        uint256 totalBets
+    );
+
+    event ClaimedProceeds(
+        uint256 marketId,
+        address user,
+        uint256 winnings,
+        uint256 frontendFeePaid,
+        uint256 creatorFeePaid
+    );
+
+    event BetWithdrawn(uint256 marketId, address user, uint256 amount);
 }
