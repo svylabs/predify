@@ -280,5 +280,6 @@ contract Predify is IPredify {
                 noBets
             );
         }
+        emit BetWithdrawn(marketId, msg.sender, yesBets, noBets);
     }
 }

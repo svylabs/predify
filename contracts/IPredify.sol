@@ -80,5 +80,10 @@ interface IPredify {
         uint256 creatorFeePaid
     );
 
-    event BetWithdrawn(uint256 marketId, address user, uint256 amount);
+    event BetWithdrawn(
+        uint256 marketId,
+        address user,
+        uint256 yesBets,
+        uint256 noBets
+    );
 }
