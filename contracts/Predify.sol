@@ -1,6 +1,7 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./IPredify.sol";
 import "./IResolutionStrategy.sol";
 
 /**
@@ -18,29 +19,14 @@ import "./IResolutionStrategy.sol";
  * The protocol tracks the outcome of predictions based on the configured strategy at the time of creation of market, and rewards users who bet on the correct outcome.
  *
  */
-contract Predify {
-    struct PredictionMarket {
-        address creator;
-        string description;
-        address resolutionStrategy;
-        bytes resolutionData;
-        uint256 totalBetAmount;
-        uint256 totalYesBetAmount;
-        uint256 totalNoBetAmount;
-        uint256 votingEndTime;
-        uint256 votingStartTime;
-        address betTokenAddress;
-        IResolutionStrategy.Outcome outcome;
-        uint256 creatorFee;
-    }
-
+contract Predify is IPredify {
     mapping(uint256 => PredictionMarket) public markets;
 
     uint256 public constant MAX_OUTCOME_RESOLUTION_TIME = 1 days;
 
     uint256 public constant MAX_PERCENTAGE = 10000;
 
-    mapping(uint256 => mapping(address => mapping(IResolutionStrategy.Outcome => uint256)))
+    mapping(uint256 => mapping(address => mapping(Outcome => uint256)))
         public bets;
 
     constructor() {}
@@ -68,14 +54,18 @@ contract Predify {
             votingStartTime: votingStartTime,
             betTokenAddress: betTokenAddress,
             creatorFee: creatorFee,
-            outcome: IResolutionStrategy.Outcome.None
+            outcome: Outcome.None
         });
+        require(
+            IResolutionStrategy(resolutionStrategy).registerMarket(marketId),
+            "Market registration failed"
+        );
     }
 
     function vote(
         uint256 marketId,
         uint256 betValue,
-        IResolutionStrategy.Outcome predictedOutcome
+        Outcome predictedOutcome
     ) public payable {
         require(
             block.timestamp >= markets[marketId].votingStartTime,
@@ -86,8 +76,8 @@ contract Predify {
             "Voting has ended"
         );
         require(
-            (predictedOutcome != IResolutionStrategy.Outcome.None &&
-                predictedOutcome != IResolutionStrategy.Outcome.Abort),
+            (predictedOutcome != Outcome.None &&
+                predictedOutcome != Outcome.Abort),
             "Can't predict this outcome"
         );
 
@@ -101,7 +91,7 @@ contract Predify {
 
         markets[marketId].totalBetAmount += betValue;
 
-        if (predictedOutcome == IResolutionStrategy.Outcome.Yes) {
+        if (predictedOutcome == Outcome.Yes) {
             markets[marketId].totalYesBetAmount += betValue;
         } else {
             markets[marketId].totalNoBetAmount += betValue;
@@ -121,16 +111,15 @@ contract Predify {
         ).getOutcome(marketId, markets[marketId].resolutionData);
     }
 
-    function claimWinningProceeds(
+    function claim(
         uint256 marketId,
         address frontend,
         uint256 frontendFee
     ) public {
         require(frontendFee < MAX_PERCENTAGE, "Frontend fee too high");
-        IResolutionStrategy.Outcome outcome = markets[marketId].outcome;
+        Outcome outcome = markets[marketId].outcome;
         require(
-            (outcome != IResolutionStrategy.Outcome.None &&
-                outcome != IResolutionStrategy.Outcome.Abort),
+            (outcome != Outcome.None && outcome != Outcome.Abort),
             "Market outcome not resolved yet"
         );
         require(
@@ -140,30 +129,26 @@ contract Predify {
 
         uint256 totalWinnings = 0;
 
-        if (outcome == IResolutionStrategy.Outcome.Yes) {
+        if (outcome == Outcome.Yes) {
             totalWinnings =
                 (markets[marketId].totalNoBetAmount *
-                    bets[marketId][msg.sender][
-                        IResolutionStrategy.Outcome.Yes
-                    ]) /
+                    bets[marketId][msg.sender][Outcome.Yes]) /
                 markets[marketId].totalYesBetAmount;
-            bets[marketId][msg.sender][IResolutionStrategy.Outcome.Yes] = 0;
-        } else if (outcome == IResolutionStrategy.Outcome.No) {
+            bets[marketId][msg.sender][Outcome.Yes] = 0;
+        } else if (outcome == Outcome.No) {
             totalWinnings =
                 (markets[marketId].totalYesBetAmount *
-                    bets[marketId][msg.sender][
-                        IResolutionStrategy.Outcome.No
-                    ]) /
+                    bets[marketId][msg.sender][Outcome.No]) /
                 markets[marketId].totalNoBetAmount;
-            bets[marketId][msg.sender][IResolutionStrategy.Outcome.No] = 0;
+            bets[marketId][msg.sender][Outcome.No] = 0;
         }
 
         uint256 creatorFee = (totalWinnings * markets[marketId].creatorFee) /
-            10000;
+            MAX_PERCENTAGE;
 
         uint256 frontendFeeAmount = 0;
         if (frontendFee > 0) {
-            frontendFeeAmount = (totalWinnings * frontendFee) / 10000;
+            frontendFeeAmount = (totalWinnings * frontendFee) / MAX_PERCENTAGE;
         }
 
         _requireTransfer(
@@ -225,22 +210,18 @@ contract Predify {
             (block.timestamp >
                 markets[marketId].votingEndTime +
                     MAX_OUTCOME_RESOLUTION_TIME) || // 1 day grace period
-                markets[marketId].outcome == IResolutionStrategy.Outcome.Abort,
+                markets[marketId].outcome == Outcome.Abort,
             "Market outcome not aborted"
         );
 
-        if (markets[marketId].outcome == IResolutionStrategy.Outcome.None) {
-            markets[marketId].outcome = IResolutionStrategy.Outcome.Abort;
+        if (markets[marketId].outcome == Outcome.None) {
+            markets[marketId].outcome = Outcome.Abort;
         }
 
-        uint256 yesBets = bets[marketId][msg.sender][
-            IResolutionStrategy.Outcome.Yes
-        ];
-        uint256 noBets = bets[marketId][msg.sender][
-            IResolutionStrategy.Outcome.No
-        ];
+        uint256 yesBets = bets[marketId][msg.sender][Outcome.Yes];
+        uint256 noBets = bets[marketId][msg.sender][Outcome.No];
         if (yesBets > 0) {
-            bets[marketId][msg.sender][IResolutionStrategy.Outcome.Yes] = 0;
+            bets[marketId][msg.sender][Outcome.Yes] = 0;
             _requireTransfer(
                 markets[marketId].betTokenAddress,
                 msg.sender,
@@ -248,7 +229,7 @@ contract Predify {
             );
         }
         if (noBets > 0) {
-            bets[marketId][msg.sender][IResolutionStrategy.Outcome.No] = 0;
+            bets[marketId][msg.sender][Outcome.No] = 0;
             _requireTransfer(
                 markets[marketId].betTokenAddress,
                 msg.sender,

@@ -1,14 +1,9 @@
 pragma solidity ^0.8.20;
 
-interface IResolutionStrategy {
-    enum Outcome {
-        None,
-        Yes,
-        No,
-        Abort
-    }
+import "./IPredify.sol";
 
-    function registerMarket(uint256 marketId) external;
+interface IResolutionStrategy {
+    function registerMarket(uint256 marketId) external returns (bool);
 
     /**
      *
@@ -19,5 +14,5 @@ interface IResolutionStrategy {
     function getOutcome(
         uint256 marketId,
         bytes calldata resolutionData
-    ) external returns (Outcome);
+    ) external returns (IPredify.Outcome);
 }

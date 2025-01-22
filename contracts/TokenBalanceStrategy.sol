@@ -1,6 +1,7 @@
 pragma solidity ^0.8.20;
 
 import "./AbstractResolutionStrategy.sol";
+import "./IPredify.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract TokenBalanceStrategy is AbstractResolutionStrategy {
@@ -9,7 +10,7 @@ contract TokenBalanceStrategy is AbstractResolutionStrategy {
     function getOutcome(
         uint256 marketId,
         bytes calldata resolutionData
-    ) external view returns (Outcome outcome) {
+    ) external view returns (IPredify.Outcome outcome) {
         require(
             registeredMarkets[marketId] == msg.sender,
             "Only the registered market owner can resolve the outcome"
@@ -21,12 +22,12 @@ contract TokenBalanceStrategy is AbstractResolutionStrategy {
         uint256 tokenBalance = IERC20(tokenAddress).balanceOf(user);
         if (minimum >= 0) {
             outcome = tokenBalance >= uint256(minimum)
-                ? Outcome.Yes
-                : Outcome.No;
+                ? IPredify.Outcome.Yes
+                : IPredify.Outcome.No;
         } else {
             outcome = tokenBalance <= uint256(-minimum)
-                ? Outcome.Yes
-                : Outcome.No;
+                ? IPredify.Outcome.Yes
+                : IPredify.Outcome.No;
         }
     }
 }
