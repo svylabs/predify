@@ -5,9 +5,7 @@ import "./IPredify.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract TokenBalanceStrategy is AbstractResolutionStrategy {
-    mapping(uint256 => uint256) public outcomes;
-
-    function getOutcome(
+    function resolve(
         uint256 marketId,
         bytes calldata resolutionData
     ) external view returns (IPredify.Outcome outcome) {
@@ -19,6 +17,12 @@ contract TokenBalanceStrategy is AbstractResolutionStrategy {
             resolutionData,
             (address, address, int256)
         );
+        uint256 balance = 0;
+        if (tokenAddress == address(0)) {
+            balance = tokenAddress.balance;
+        } else {
+            balance = IERC20(tokenAddress).balanceOf(user);
+        }
         uint256 tokenBalance = IERC20(tokenAddress).balanceOf(user);
         if (minimum >= 0) {
             outcome = tokenBalance >= uint256(minimum)

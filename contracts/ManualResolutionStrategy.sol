@@ -18,7 +18,7 @@ contract ManualResolutionStrategy is AbstractResolutionStrategy {
         outcomes[marketId][msg.sender] = outcome;
     }
 
-    function getOutcome(
+    function resolve(
         uint256 marketId,
         bytes calldata resolutionData
     ) external view returns (IPredify.Outcome) {

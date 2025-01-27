@@ -41,6 +41,14 @@ contract Predify is IPredify {
         address betTokenAddress,
         uint256 creatorFee
     ) public {
+        require(
+            markets[marketId].creator == address(0) &&
+                markets[marketId].votingStartTime == 0,
+            "Market already exists"
+        );
+        if (votingStartTime == 0) {
+            votingStartTime = block.timestamp;
+        }
         require(creatorFee < MAX_PERCENTAGE, "Creator fee too high");
         markets[marketId] = PredictionMarket({
             creator: msg.sender,
@@ -122,6 +130,7 @@ contract Predify is IPredify {
     }
 
     function resolveMarket(uint256 marketId) public {
+        require(markets[marketId].votingStartTime > 0, "Market does not exist");
         require(
             block.timestamp > markets[marketId].votingEndTime,
             "Voting has not ended yet"
@@ -140,7 +149,7 @@ contract Predify is IPredify {
 
         Outcome outcome = IResolutionStrategy(
             markets[marketId].resolutionStrategy
-        ).getOutcome(marketId, markets[marketId].resolutionData);
+        ).resolve(marketId, markets[marketId].resolutionData);
 
         markets[marketId].outcome = outcome;
 
@@ -207,6 +216,7 @@ contract Predify is IPredify {
         emit ClaimedProceeds(
             marketId,
             msg.sender,
+            outcome,
             totalWinnings,
             creatorFee,
             frontendFeeAmount

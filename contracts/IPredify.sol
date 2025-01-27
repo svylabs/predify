@@ -75,6 +75,7 @@ interface IPredify {
     event ClaimedProceeds(
         uint256 marketId,
         address user,
+        Outcome outcome,
         uint256 winnings,
         uint256 frontendFeePaid,
         uint256 creatorFeePaid

@@ -11,7 +11,7 @@ interface IResolutionStrategy {
      * 1 - Yes
      * 2 - No
      */
-    function getOutcome(
+    function resolve(
         uint256 marketId,
         bytes calldata resolutionData
     ) external returns (IPredify.Outcome);
