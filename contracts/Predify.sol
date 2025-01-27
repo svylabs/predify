@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./IPredify.sol";
 import "./IResolutionStrategy.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * Predify is a prediction market for DeFi. Users can create prediction markets for any DeFi protocol and bet on the outcome of prediction.
@@ -19,7 +20,7 @@ import "./IResolutionStrategy.sol";
  * The protocol tracks the outcome of predictions based on the configured strategy at the time of creation of market, and rewards users who bet on the correct outcome.
  *
  */
-contract Predify is IPredify {
+contract Predify is IPredify, ReentrancyGuard {
     mapping(uint256 => PredictionMarket) public markets;
 
     uint256 public constant MAX_OUTCOME_RESOLUTION_TIME = 1 days;
@@ -83,7 +84,7 @@ contract Predify is IPredify {
         uint256 marketId,
         uint256 betValue,
         Outcome predictedOutcome
-    ) public payable {
+    ) public payable nonReentrant {
         require(
             block.timestamp >= markets[marketId].votingStartTime,
             "Voting has not started yet"
@@ -160,7 +161,7 @@ contract Predify is IPredify {
         uint256 marketId,
         address frontend,
         uint256 frontendFee
-    ) public {
+    ) public nonReentrant {
         require(frontendFee < MAX_PERCENTAGE, "Frontend fee too high");
         Outcome outcome = markets[marketId].outcome;
         require(
