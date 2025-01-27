@@ -6,7 +6,10 @@ import "./IResolutionStrategy.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
- * Predify is a prediction market for DeFi. Users can create prediction markets for any DeFi protocol and bet on the outcome of prediction.
+ * Predify is a permissionless binary prediction market for DeFi.
+ *
+ * Creators can create prediction markets using inbuilt resolution strategies, users can participate by simply betting on the outcome and developers can build custom onchain or
+ * offchain resolution strategies to resolve the outcome of prediction.
  *
  * Some example markets could be:
  * 1. Will a governance vote pass in a certain protocol?
