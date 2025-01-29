@@ -193,7 +193,7 @@ describe("IPredify with TokenBalanceStrategy", function () {
     const claimTx = await predify.connect(user1).claim(marketId, ethers.ZeroAddress, 0);
     await expect(claimTx)
       .to.emit(predify, "ClaimedProceeds")
-      .withArgs(marketId, await user1.getAddress(), 1, ethers.parseEther("0"), 0, ethers.parseEther("0.00"));
+      .withArgs(marketId, await user1.getAddress(), 1, ethers.parseEther("1"), ethers.parseEther("0"), 0, ethers.parseEther("0.00"));
   });
 
   describe("Test flow with multiple users", function () {
@@ -273,29 +273,29 @@ describe("IPredify with TokenBalanceStrategy", function () {
         let claimTx = await predify.connect(user1).claim(marketId, ethers.ZeroAddress, 0);
         await expect(claimTx)
           .to.emit(predify, "ClaimedProceeds")
-          .withArgs(marketId, await user1.getAddress(), 1, 0, 0, 0);
+          .withArgs(marketId, await user1.getAddress(), 1, 0, 0, 0, 0);
 
         claimTx = await predify.connect(user2).claim(marketId, ethers.ZeroAddress, 0);
         await expect(claimTx)
           .to.emit(predify, "ClaimedProceeds")
-          .withArgs(marketId, await user2.getAddress(), 1, ethers.parseEther("1.5"), ethers.parseEther("0.015"), 0);
+          .withArgs(marketId, await user2.getAddress(), 1,  ethers.parseEther("1"), ethers.parseEther("1.5"), ethers.parseEther("0.015"), 0);
 
         claimTx = await predify.connect(user3).claim(marketId, ethers.ZeroAddress, 0);
         await expect(claimTx)
           .to.emit(predify, "ClaimedProceeds")
-          .withArgs(marketId, await user3.getAddress(), 1, 0, 0, 0);
+          .withArgs(marketId, await user3.getAddress(), 1,  0, 0, 0, 0);
 
 
           claimTx = await predify.connect(user4).claim(marketId, owner, 100);
           await expect(claimTx)
             .to.emit(predify, "ClaimedProceeds")
-            .withArgs(marketId, await user4.getAddress(), 1, ethers.parseEther("1.5"), ethers.parseEther("0.015"), ethers.parseEther("0.015"));
+            .withArgs(marketId, await user4.getAddress(), 1, ethers.parseEther("1"), ethers.parseEther("1.5"), ethers.parseEther("0.015"), ethers.parseEther("0.015"));
 
         
         claimTx = await predify.connect(user5).claim(marketId, ethers.ZeroAddress, 0);
             await expect(claimTx)
               .to.emit(predify, "ClaimedProceeds")
-              .withArgs(marketId, await user5.getAddress(), 1, 0, 0, 0);
+              .withArgs(marketId, await user5.getAddress(), 1, 0, 0, 0, 0);
 
 
       });
@@ -374,28 +374,28 @@ describe("IPredify with TokenBalanceStrategy", function () {
         let claimTx = await predify.connect(user1).claim(marketId, ethers.ZeroAddress, 0);
         await expect(claimTx)
           .to.emit(predify, "ClaimedProceeds")
-          .withArgs(marketId, await user1.getAddress(), 2, ethers.parseEther("2"), ethers.parseEther("0.02"), 0);
+          .withArgs(marketId, await user1.getAddress(), 2, ethers.parseEther("1"), ethers.parseEther("2"), ethers.parseEther("0.02"), 0);
 
         claimTx = await predify.connect(user2).claim(marketId, ethers.ZeroAddress, 0);
         await expect(claimTx)
           .to.emit(predify, "ClaimedProceeds")
-          .withArgs(marketId, await user2.getAddress(), 2, 0, 0, 0);
+          .withArgs(marketId, await user2.getAddress(), 2, 0, 0, 0, 0);
 
         claimTx = await predify.connect(user3).claim(marketId, ethers.ZeroAddress, 0);
         await expect(claimTx)
           .to.emit(predify, "ClaimedProceeds")
-          .withArgs(marketId, await user3.getAddress(), 2, ethers.parseEther("2"), ethers.parseEther("0.02"), 0);
+          .withArgs(marketId, await user3.getAddress(), 2, ethers.parseEther("1"), ethers.parseEther("2"), ethers.parseEther("0.02"), 0);
 
 
           claimTx = await predify.connect(user4).claim(marketId, owner, 100);
           await expect(claimTx)
             .to.emit(predify, "ClaimedProceeds")
-            .withArgs(marketId, await user4.getAddress(), 2, 0, 0, 0);
+            .withArgs(marketId, await user4.getAddress(), 2, 0, 0, 0, 0);
 
             claimTx = await predify.connect(user5).claim(marketId, ethers.ZeroAddress, 0);
             await expect(claimTx)
               .to.emit(predify, "ClaimedProceeds")
-              .withArgs(marketId, await user5.getAddress(), 2, ethers.parseEther("2"), ethers.parseEther("0.02"), 0);
+              .withArgs(marketId, await user5.getAddress(), 2, ethers.parseEther("1"), ethers.parseEther("2"), ethers.parseEther("0.02"), 0);
 
 
       });

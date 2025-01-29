@@ -177,17 +177,18 @@ contract Predify is IPredify, ReentrancyGuard {
         );
 
         uint256 totalWinnings = 0;
+        uint256 betValueReturn = 0;
 
         if (outcome == Outcome.Yes) {
+            betValueReturn = bets[marketId][msg.sender][Outcome.Yes];
             totalWinnings =
-                (markets[marketId].totalNoBetAmount *
-                    bets[marketId][msg.sender][Outcome.Yes]) /
+                (markets[marketId].totalNoBetAmount * betValueReturn) /
                 markets[marketId].totalYesBetAmount;
             bets[marketId][msg.sender][Outcome.Yes] = 0;
         } else if (outcome == Outcome.No) {
+            betValueReturn = bets[marketId][msg.sender][Outcome.No];
             totalWinnings =
-                (markets[marketId].totalYesBetAmount *
-                    bets[marketId][msg.sender][Outcome.No]) /
+                (markets[marketId].totalYesBetAmount * betValueReturn) /
                 markets[marketId].totalNoBetAmount;
             bets[marketId][msg.sender][Outcome.No] = 0;
         }
@@ -217,10 +218,18 @@ contract Predify is IPredify, ReentrancyGuard {
                 frontendFeeAmount
             );
         }
+        if (betValueReturn > 0) {
+            _requireTransfer(
+                markets[marketId].betTokenAddress,
+                msg.sender,
+                betValueReturn
+            );
+        }
         emit ClaimedProceeds(
             marketId,
             msg.sender,
             outcome,
+            betValueReturn,
             totalWinnings,
             creatorFee,
             frontendFeeAmount
@@ -263,15 +272,16 @@ contract Predify is IPredify, ReentrancyGuard {
 
     function withdrawBet(uint256 marketId) public {
         // Only if aborted or outcome not resolved in time
+        Outcome outcome = markets[marketId].outcome;
         require(
-            (block.timestamp >
+            ((block.timestamp >
                 markets[marketId].votingEndTime +
-                    MAX_OUTCOME_RESOLUTION_TIME) || // 1 day grace period
-                markets[marketId].outcome == Outcome.Abort,
+                    MAX_OUTCOME_RESOLUTION_TIME) && outcome == Outcome.None) || // 1 day grace period
+                outcome == Outcome.Abort,
             "Market outcome not aborted"
         );
 
-        if (markets[marketId].outcome == Outcome.None) {
+        if (outcome == Outcome.None) {
             markets[marketId].outcome = Outcome.Abort;
             emit MarketResolved(marketId, Outcome.Abort);
         }

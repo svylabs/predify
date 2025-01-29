@@ -76,6 +76,7 @@ interface IPredify {
         uint256 marketId,
         address user,
         Outcome outcome,
+        uint256 returnAmount,
         uint256 winnings,
         uint256 frontendFeePaid,
         uint256 creatorFeePaid
