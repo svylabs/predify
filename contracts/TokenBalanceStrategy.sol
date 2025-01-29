@@ -23,13 +23,12 @@ contract TokenBalanceStrategy is AbstractResolutionStrategy {
         } else {
             balance = IERC20(tokenAddress).balanceOf(user);
         }
-        uint256 tokenBalance = IERC20(tokenAddress).balanceOf(user);
         if (minimum >= 0) {
-            outcome = tokenBalance >= uint256(minimum)
+            outcome = balance >= uint256(minimum)
                 ? IPredify.Outcome.Yes
                 : IPredify.Outcome.No;
         } else {
-            outcome = tokenBalance <= uint256(-minimum)
+            outcome = balance <= uint256(-minimum)
                 ? IPredify.Outcome.Yes
                 : IPredify.Outcome.No;
         }
