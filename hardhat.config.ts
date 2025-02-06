@@ -1,7 +1,8 @@
-import { HardhatUserConfig } from "hardhat/config";
+import pkg from "hardhat/config.js";
+//const { HardhatUserConfig } = pkg;
 import "@nomicfoundation/hardhat-toolbox";
 
-const config: HardhatUserConfig = {
+const config = {
   solidity: "0.8.24",
 };
 
