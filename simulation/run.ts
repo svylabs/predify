@@ -1,45 +1,14 @@
 #!/usr/bin/env node
 import { PRNG, Actor, Action, Runner, Agent, Environment } from "@svylabs/flocc-ext";
 import type { Account, Web3RunnerOptions, SnapshotProvider, RunContext } from "@svylabs/flocc-ext";
-import pkg from 'hardhat';
-const { ethers } = pkg;
+import {ethers} from 'hardhat';
+//const { ethers } = pkg;
+import { deployContracts } from "./deploy";
+import { ContractSnapshotProvider } from "./snapshot";
+import { BorrowAction } from "./actions";
 
-async function deployContracts() {
-    const [deployer] = await ethers.getSigners();
-    const contracts = {};
-    // Deploy all required contracts here and add them to the mapping.
-    // Return the contracts map
-    return contracts;
-}
-
-// Define your custom Actions here
-class BorrowAction extends Action {
-    private contracts: any;
-    constructor(contracts: any) {
-        super("Borrow");
-    }
-
-    async execute(context: RunContext, actor: Actor, currentSnapshot: any): Promise<any> {
-        actor.log("Borrowing...");
-        return { borrowAmount: 100 };
-    }
-
-    async validate(context: RunContext, actor: Actor, previousSnapshot: any, newSnapshot: any, actionParams: any): Promise<boolean> {
-        actor.log("Validating borrow...");
-        return true; // Always succeeds
-    }
-}
-
-// Define SnapshotProvider here
-class ContractSnapshotProvider implements SnapshotProvider {
-    private contracts: any;
-    constructor(contracts: any) {
-        this.contracts = contracts;
-    }
-    async snapshot(): Promise<any> {
-        // Take snapshots of all contracts here
-    }
-}
+ // Define Actors here
+ const numActors = 10;
 
 async function main() {
     
@@ -48,8 +17,6 @@ async function main() {
 
     const env = new Environment();
 
-    // Define Actors here
-    const numActors = 10;
     const actors: Actor[] = [];
     for (let i = 0; i < numActors; i++) {
         const account: Account = {

@@ -1,12 +1,12 @@
 {
   "name": "predify",
-  "type": "module",
+  "type": "commonjs",
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.8",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.12",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@openzeppelin/contracts": "^5.2.0",
-    "@svylabs/flocc-ext": "^0.0.21",
+    "@svylabs/flocc-ext": "^0.1.0",
     "@types/jest": "^29.5.14",
     "chai": "^4.5.0",
     "hardhat": "^2.22.18",
